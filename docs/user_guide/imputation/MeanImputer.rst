@@ -310,6 +310,97 @@ center of the distribution:
 Because of the increase in the number of observations at the center, the variance of 
 the variable decreases, and the kurtosis coefficient increases.
 
+Validating the learned statistics
+----------------------------------
+
+A common production failure is the statistics used at inference time drifting
+away from the ones learned at training time — for example when a pipeline is
+accidentally re-fitted on a single row, or when a different data range is used
+to compute the means. MeanImputer can pin down and verify its learned
+statistics through the opt-in parameter `validate_stats`:
+
+.. code:: python
+
+    from feature_engine.imputation import MeanImputer
+
+    imputer = MeanImputer(imputation_method="mean", validate_stats=True)
+    imputer.fit(X_train)
+
+With `validate_stats=True`:
+
+- **Provenance**: `fit()` records the learned statistics in the attribute
+  `statistics_snapshot_`, together with the data range they were computed
+  from (`stats_scope`: `"full"` or `"sampled"`), and whether they are exact
+  or approximate.
+- **Frozen statistics**: once fitted, calling `fit()` again raises
+  `StatisticsRefitError` instead of silently replacing the statistics. Use
+  `refit(X)` when you really want to re-learn them.
+- **Consistency check**: `check_statistics()` compares the frozen statistics
+  against another fitted imputer, a saved snapshot, or fresh data, and issues
+  a `StatisticsMismatchWarning` when they differ beyond tolerance:
+
+.. code:: python
+
+    # compare against the inference data
+    report = imputer.check_statistics(X=X_inference, rtol=1e-3)
+
+    # or, without loading the training data: save the snapshot at train
+    # time and compare against it at inference time
+    imputer.save_statistics("train_stats.json")       # at train time
+    report = imputer_prod.check_statistics(other="train_stats.json")
+
+- **Drift detection**: `check_drift()` compares the distribution of new data
+  against the one seen at fit time (PSI on the stored histogram, the same
+  binning and formula as
+  :class:`feature_engine.selection.DropHighPSIFeatures`) and issues a
+  `DistributionDriftWarning` when the PSI exceeds the threshold. With
+  `transformed=True`, the comparison is done on the imputed data. If the new
+  data has fewer than `min_samples` rows, the check says so and draws no
+  conclusion.
+
+.. code:: python
+
+    report = imputer.check_drift(X_inference, threshold=0.25, min_samples=200)
+
+Chunked fitting
+~~~~~~~~~~~~~~~
+
+When the training data does not fit in memory, `partial_fit()` learns the
+statistics from data fed in chunks:
+
+.. code:: python
+
+    imputer = MeanImputer(imputation_method="median", random_state=42)
+    for chunk in chunks:
+        imputer.partial_fit(chunk)
+
+The **mean is exact** (computed from running sums). The **median is
+approximate**: it is estimated from a reservoir sample, and its error bound —
+derived from the Dvoretzky-Kiefer-Wolfowitz inequality with 95% confidence —
+is recorded in `statistics_snapshot_.error_bounds`. The snapshot scope is
+`"chunked"` in both cases.
+
+Known limitations
+~~~~~~~~~~~~~~~~~
+
+- The validation adds one pass over the variables at `fit()` time (to build
+  the distribution summary) and stores a small snapshot (quantile grid and a
+  10-bin histogram per variable); it never stores raw data.
+- `partial_fit()` quantiles depend on the `random_state` and on how the data
+  is split into chunks; the exact statistics (mean) do not. No multiprocessing
+  is used, so the number of processes does not affect the results.
+- The drift check needs enough rows to be conclusive (`min_samples`, 200 by
+  default) and only monitors the variables the imputer was fitted on.
+- The validation checks never block inference: if a check itself fails, a
+  `StatisticsValidationWarning` is issued and the returned report has status
+  `"error"`. The only exceptions are `StatisticsRefitError` (accidental
+  re-fit) and `MissingStatisticsError` (transforming with `validate_stats=True`
+  but without a recorded snapshot), which are raised explicitly instead of
+  falling back to default values.
+
+With `validate_stats=False` (the default), MeanImputer behaves exactly as
+before: no snapshot is recorded, re-fitting is allowed, and no checks run.
+
 Additional resources
 --------------------
 
