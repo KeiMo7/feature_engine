@@ -11,3 +11,4 @@ and transformation procedures.
 
    MatchCategories
    MatchVariables
+   RenameFeatures

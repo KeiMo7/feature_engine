@@ -7,6 +7,7 @@
 from sklearn import pipeline
 from sklearn.base import _fit_context, clone
 from sklearn.pipeline import _final_estimator_has, _fit_transform_one
+
 try:
     from sklearn.utils import _print_elapsed_time
 except ImportError:
@@ -16,6 +17,10 @@ from sklearn.utils._param_validation import HasMethods, Hidden
 from sklearn.utils.metadata_routing import _routing_enabled, process_routing
 from sklearn.utils.metaestimators import available_if
 from sklearn.utils.validation import check_memory
+
+from feature_engine.snapshot._diff import diff_snapshots
+from feature_engine.snapshot._snapshot import FeatureSnapshot
+from feature_engine.snapshot._tracking import build_snapshot
 
 METHODS.append("transform_x_y")
 
@@ -311,6 +316,95 @@ class Pipeline(pipeline.Pipeline):
                 return last_step.fit(Xt, y, **last_step_params["fit"]).transform(
                     Xt, **last_step_params["transform"]
                 )
+
+    def create_feature_snapshot(
+        self,
+        X=None,
+        y=None,
+        *,
+        renames=None,
+        name=None,
+        include_dtypes=True,
+    ):
+        """Capture a snapshot of the feature set produced by this pipeline.
+
+        The snapshot records the structure of the feature set — feature names,
+        dtypes, the step that produced each feature, the input columns that
+        step depended on, the full parameter set of every step and the library
+        versions in use. It never contains rows of data.
+
+        The pipeline must be fitted first.
+
+        Parameters
+        ----------
+        X: pandas dataframe, default=None
+            Data to run through the fitted chain while tracing it. When
+            provided, dtypes and the exact per-step lineage are observed from
+            the actual outputs. When ``None``, the snapshot is built purely
+            from fitted metadata (``get_feature_names_out``): no data is
+            touched, but dtypes are not recorded.
+
+        y: pandas Series, default=None
+            Unused. Accepted for API symmetry with other pipeline methods.
+
+        renames: dict, default=None
+            Optional mapping of step name to a ``{old_name: new_name}``
+            dictionary. Use it to tell the snapshot that a step renamed a
+            feature when that step does not expose a ``feature_renames_``
+            attribute. Declared renames keep one stable feature identity
+            instead of being reported as a removal plus an addition.
+
+        name: str, default=None
+            Optional human-readable name stored in the snapshot.
+
+        include_dtypes: bool, default=True
+            Whether to record the dtype of every feature. Ignored (forced to
+            False) when ``X`` is ``None``.
+
+        Returns
+        -------
+        snapshot: FeatureSnapshot
+            The feature snapshot. Write it to disk with
+            :meth:`FeatureSnapshot.to_json_file` to persist it.
+
+        Raises
+        ------
+        FeatureNameConflictError
+            If two steps produce an output feature with the same name.
+        """
+
+        payload = build_snapshot(
+            self,
+            X,
+            renames=renames,
+            name=name,
+            include_dtypes=include_dtypes,
+        )
+        return FeatureSnapshot(payload)
+
+    def diff_feature_snapshots(self, old_snapshot, new_snapshot=None):
+        """Compare two snapshots, or a snapshot against the current pipeline.
+
+        Parameters
+        ----------
+        old_snapshot: FeatureSnapshot or dict
+            The baseline snapshot.
+
+        new_snapshot: FeatureSnapshot or dict, default=None
+            The snapshot to compare against. When ``None``, a fresh snapshot
+            of the current (fitted) pipeline is built from fitted metadata and
+            used as the new snapshot.
+
+        Returns
+        -------
+        diff: SnapshotDiff
+            Added, removed, renamed and dtype-changed features are reported in
+            separate lists, alongside step parameter changes.
+        """
+
+        if new_snapshot is None:
+            new_snapshot = self.create_feature_snapshot()
+        return diff_snapshots(old_snapshot, new_snapshot)
 
     @available_if(_final_estimator_has("fit_predict"))
     @_fit_context(

@@ -12,3 +12,4 @@ rows are removed from X.
 
    Pipeline
    make_pipeline
+   FeatureSnapshots

@@ -14,3 +14,4 @@ rows are removed from X.
 
    Pipeline
    make_pipeline
+   feature_snapshots

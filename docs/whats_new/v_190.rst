@@ -1,6 +1,22 @@
 Version 1.9.X
 =============
 
+Unreleased
+----------
+
+New functionality
+~~~~~~~~~~~~~~~~~
+
+- Added feature snapshots to `Pipeline`. The new methods `create_feature_snapshot()` and
+  `diff_feature_snapshots()`, together with the `feature_engine.snapshot` module, capture
+  the structure of a feature set (names, dtypes, lineage, step parameters), diff two
+  snapshots (added, removed, renamed and dtype-changed features reported separately) and
+  roll a pipeline back to the chain stored in a snapshot. Snapshots contain structure and
+  parameters only, never data, and are fully opt-in.
+- Added `RenameFeatures()` to the preprocessing module. It renames variables while recording
+  the mapping in `feature_renames_`, so snapshots recognise the output as the same feature
+  under a new name.
+
 Version 1.9.4
 -------------
 
