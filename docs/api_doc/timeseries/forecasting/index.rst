@@ -13,5 +13,8 @@ past.
    LagFeatures
    WindowFeatures
    ExpandingWindowFeatures
+   GroupedLagFeatures
+   GroupedWindowFeatures
+   GroupedExpandingWindowFeatures
 
 

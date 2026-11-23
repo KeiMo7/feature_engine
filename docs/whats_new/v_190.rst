@@ -1,6 +1,18 @@
 Version 1.9.X
 =============
 
+Grouped forecasting features
+----------------------------
+
+New transformers :class:`GroupedLagFeatures`, :class:`GroupedWindowFeatures` and
+:class:`GroupedExpandingWindowFeatures` compute lag, rolling and expanding
+features independently for each entity in a multi-entity time-series table.
+They sort each entity by a real timestamp, support time-based windows that
+respect gaps, a configurable forecast horizon, deterministic handling of
+duplicate timestamps, and an explicit cold-start policy for entities that
+appear only during ``transform``. The existing non-grouped transformers are
+unchanged.
+
 Version 1.9.4
 -------------
 

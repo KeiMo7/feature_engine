@@ -1,0 +1,39 @@
+
+Grouped forecasting tests
+-------------------------
+
+.........................................                                [100%]
+=============================== warnings summary ===============================
+tests/test_time_series/test_forecasting/test_grouped_forecast_features.py::test_grouped_matches_ungrouped_for_single_entity
+tests/test_time_series/test_forecasting/test_grouped_forecast_features.py::test_grouped_matches_ungrouped_for_single_entity
+tests/test_time_series/test_forecasting/test_grouped_forecast_features.py::test_grouped_matches_ungrouped_for_single_entity
+  /home/wll/uid48/feature_engine/timeseries/forecasting/base_forecast_transformers.py:233: Pandas4Warning: The inplace keyword in DataFrame.sort_index is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    X.sort_index(inplace=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+41 passed, 3 warnings in 0.56s
+
+Exit code: 0
+
+
+Pre-existing time-series suite
+------------------------------
+
+........................................................................ [ 44%]
+........................................................................ [ 88%]
+..................                                                       [100%]
+=============================== warnings summary ===============================
+tests/test_time_series/test_forecasting/test_check_estimator_forecasting.py: 138 warnings
+tests/test_time_series/test_forecasting/test_expanding_window_features.py: 10 warnings
+tests/test_time_series/test_forecasting/test_grouped_forecast_features.py: 3 warnings
+tests/test_time_series/test_forecasting/test_lag_features.py: 29 warnings
+tests/test_time_series/test_forecasting/test_window_features.py: 20 warnings
+  /home/wll/uid48/feature_engine/timeseries/forecasting/base_forecast_transformers.py:233: Pandas4Warning: The inplace keyword in DataFrame.sort_index is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    X.sort_index(inplace=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+162 passed, 200 warnings in 1.60s
+
+Exit code: 0

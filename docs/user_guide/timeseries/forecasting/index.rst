@@ -147,6 +147,7 @@ Forecasting Features Transformers
    LagFeatures
    WindowFeatures
    ExpandingWindowFeatures
+   GroupedForecastingFeatures
 
 |
 |
