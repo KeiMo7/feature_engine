@@ -12,6 +12,7 @@ from feature_engine.discretisation import (
     EqualFrequencyDiscretiser,
     EqualWidthDiscretiser,
     GeometricWidthDiscretiser,
+    MonotonicDiscretiser,
 )
 from tests.estimator_checks.estimator_checks import check_feature_engine_estimator
 from tests.estimator_checks.non_fitted_error_checks import (
@@ -28,6 +29,7 @@ _estimators = [
     EqualWidthDiscretiser(),
     ArbitraryDiscretiser(binning_dict={"x0": [-np.inf, 0, np.inf]}),
     GeometricWidthDiscretiser(),
+    MonotonicDiscretiser(),
 ]
 
 if sklearn_version < parse_version("1.6"):

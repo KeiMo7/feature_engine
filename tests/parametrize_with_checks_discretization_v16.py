@@ -13,6 +13,7 @@ from feature_engine.discretisation import (
     EqualFrequencyDiscretiser,
     EqualWidthDiscretiser,
     GeometricWidthDiscretiser,
+    MonotonicDiscretiser,
 )
 
 dtd = DecisionTreeDiscretiser(regression=False)
@@ -20,6 +21,7 @@ efd = EqualFrequencyDiscretiser()
 ewd = EqualWidthDiscretiser()
 ad = ArbitraryDiscretiser(binning_dict={"x0": [-np.inf, 0, np.inf]})
 gd = GeometricWidthDiscretiser()
+md = MonotonicDiscretiser()
 
 EXPECTED_FAILED_CHECKS = {
     "DecisionTreeDiscretiser": dtd._more_tags()["_xfail_checks"],
@@ -27,12 +29,13 @@ EXPECTED_FAILED_CHECKS = {
     "EqualWidthDiscretiser": ewd._more_tags()["_xfail_checks"],
     "ArbitraryDiscretiser": ad._more_tags()["_xfail_checks"],
     "GeometricWidthDiscretiser": gd._more_tags()["_xfail_checks"],
+    "MonotonicDiscretiser": md._more_tags()["_xfail_checks"],
 }
 
 
 # discretization
 @parametrize_with_checks(
-    estimators=[dtd, efd, ewd, ad, gd],
+    estimators=[dtd, efd, ewd, ad, gd, md],
     expected_failed_checks=lambda est: EXPECTED_FAILED_CHECKS.get(
         est.__class__.__name__, {}
     ),
